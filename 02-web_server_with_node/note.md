@@ -242,4 +242,4 @@ if (req.method === 'POST' && items[1] === 'friends') {
 }
 ```
 
-- no need to call end() function when use .pipe because it already call end() automatically
+- no need to call end() to send data when use .pipe() because it already call end() automatically

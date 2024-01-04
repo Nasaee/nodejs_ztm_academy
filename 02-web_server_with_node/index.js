@@ -13,7 +13,15 @@ server.on('request', (req, res) => {
   // url: /friends/2 => ['', 'friends', '2']
   const items = req.url.split('/');
 
-  if (items[1] === 'friends') {
+  if (req.method === 'POST' && items[1] === 'friends') {
+    req.on('data', (data) => {
+      const friend = data.toString(); // convert to string because data is node buffer object (return collection of row bytes)
+      console.log('Request: ', friend);
+      friends.push(JSON.parse(friend)); // convert back to object because data is string
+    });
+    // send back response after data already process
+    req.pipe(res); // send data(JSON) from request to response (readable.pipe(writable))
+  } else if (req.method === 'GET' && items[1] === 'friends') {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
 
@@ -25,7 +33,7 @@ server.on('request', (req, res) => {
     } else {
       res.end(JSON.stringify(friends));
     }
-  } else if (items[1] === 'messages') {
+  } else if (req.method === 'GET' && items[1] === 'messages') {
     res.setHeader('Content-Type', 'text/html');
     res.write('<html>');
     res.write('<body>');

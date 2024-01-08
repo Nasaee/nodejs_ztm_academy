@@ -218,3 +218,98 @@ module.exports = { postFriend, getFriends, getFriend };
 ```
 
 # Express Router
+
+```js
+// ./server.js
+const express = require('express');
+
+const frindsRouter = require('./routes/friends.router');
+const messagesRouter = require('./routes/messages.router');
+
+const app = express();
+
+const PORT = 3000;
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  next();
+  const delta = Date.now() - start;
+  console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
+});
+
+app.use(express.json());
+
+app.use('/friends', frindsRouter); // use router as middleware (mountilng the messages router)
+app.use('/messages', messagesRouter); // use router as middleware (mountilng the messages router)
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+**Note:**
+
+````js
+console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);```
+````
+
+output is:
+
+```sh
+GET /friends/ 12ms
+```
+
+or
+
+```sh
+GET /messages/ 12ms
+```
+
+```js
+// ./routes/friends.router.js
+const express = require('express');
+const friendsController = require('../controllers/friends.controller');
+
+const frindsRouter = express.Router(); // create router
+
+// add middleware
+frindsRouter.use((req, res, next) => {
+  console.log('ip address: ', req.ip);
+  next();
+});
+
+frindsRouter.post('/', friendsController.postFriend);
+frindsRouter.get('/', friendsController.getFriends);
+frindsRouter.get('/:friendId', friendsController.getFriend);
+
+module.exports = frindsRouter;
+```
+
+**Note:**
+
+```js
+console.log('ip address: ', req.ip);
+```
+
+output is:
+
+```sh
+ip address: ::1
+```
+
+- ::1 is an IPv6 address (localhost)
+- 127.0.0.1 is an IPv4 address
+
+```js
+// ./routes/messages.router.js
+const express = require('express');
+
+const messagesController = require('../controllers/messages.controller');
+
+const messagesRouter = express.Router();
+
+messagesRouter.get('/', messagesController.getMessages);
+messagesRouter.post('/', messagesController.postMessages);
+
+module.exports = messagesRouter;
+```

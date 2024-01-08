@@ -1,27 +1,23 @@
 const express = require('express');
-// use named import for controller just once and can use it anywhere
-const messagesController = require('./controllers/messages.controller');
-const friendsController = require('./controllers/friends.controller');
+
+const frindsRouter = require('./routes/friends.router');
+const messagesRouter = require('./routes/messages.router');
 
 const app = express();
 
 const PORT = 3000;
 
 app.use((req, res, next) => {
-  const start = Date.now(); // represents start time
-  next(); // call next middleware to pass control to next handler
-  const delta = Date.now() - start; // represents difference in times between start and after process in done
-  console.log(`${req.method} ${req.url} ${delta}ms`);
+  const start = Date.now();
+  next();
+  const delta = Date.now() - start;
+  console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
 });
 
-app.use(express.json()); // return pice of middleware and converts req.body from json to be an js object
+app.use(express.json());
 
-app.post('/friends', friendsController.postFriend);
-app.get('/friends', friendsController.getFriends);
-app.get('/friends/:friendId', friendsController.getFriend); // GET /friends/1
-
-app.get('/messages', messagesController.getMessages);
-app.post('/messages', messagesController.postMessages);
+app.use('/friends', frindsRouter); // use router as middleware (mountilng the messages router)
+app.use('/messages', messagesRouter); // use router as middleware (mountilng the messages router)
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

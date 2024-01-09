@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 
 const frindsRouter = require('./routes/friends.router');
 const messagesRouter = require('./routes/messages.router');
@@ -14,6 +15,8 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
 });
 
+// serv static website like html+css, react, vue, Angular
+app.use('/site', express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 app.use('/friends', frindsRouter); // use router as middleware (mountilng the messages router)

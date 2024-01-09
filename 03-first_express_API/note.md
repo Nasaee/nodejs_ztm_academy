@@ -313,3 +313,109 @@ messagesRouter.post('/', messagesController.postMessages);
 
 module.exports = messagesRouter;
 ```
+
+# RESTful APIs
+
+## RESTful API rules 6
+
+![RESTful API rules](./reference/RESTful_APIs_rule.jpg)
+
+![HTTP Methods for RESTful Services](./reference/CRUD.png)
+
+[referance 👉](https://www.restapitutorial.com/lessons/httpmethods.html)
+
+### path build in module
+
+**Certainly! In Node.js, the path module is a built-in module that provides utilities for working with file and directory paths. It helps in constructing and manipulating file paths in a way that is platform-independent (i.e., it works consistently across different operating systems).**
+
+```js
+// ./controllers/messages.controller.js
+const path = require('path');
+
+function getMessages(req, res) {
+  res.sendFile(
+    path.join(__dirname, '..', 'public', 'images', 'skimountain.jpg')
+  );
+}
+
+function postMessages(req, res) {
+  console.log('Updating messages...');
+}
+
+module.exports = {
+  getMessages,
+  postMessages,
+};
+```
+
+**Note:**
+
+```js
+res.sendFile(path.join(__dirname, '..', 'public', 'skimountain.jpg'));
+```
+
+- **res.sendFileres(...)** send a file to the client
+- **\_\_dirname** is the current directory
+- **'..'** tell node to go up one level
+- **'public'** is the folder name
+- **'skimountain.jpg'** is the file name
+
+# Serving Website With Node
+
+```js
+const express = require('express');
+const path = require('path');
+
+const frindsRouter = require('./routes/friends.router');
+const messagesRouter = require('./routes/messages.router');
+
+const app = express();
+
+const PORT = 3000;
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  next();
+  const delta = Date.now() - start;
+  console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
+});
+
+app.use('/site', express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+app.use('/friends', frindsRouter); // use router as middleware (mountilng the messages router)
+app.use('/messages', messagesRouter); // use router as middleware (mountilng the messages router)
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+**Note:**
+
+```js
+app.use('/site', express.static(path.join(__dirname, 'public')));
+```
+
+- **express.static(path)** use for serving static website like html+css, react, vue, Angular
+- **'public'** means response everything from the public folder
+
+# Templating Engine
+
+[Templating Engine Support](https://expressjs.com/en/resources/template-engines.html)
+
+one of the most widely use is **hbs**
+
+- hbs: Adapter for Handlebars.js, an extension of Mustache.js template engine
+- Handlebars.js is a more modern templating engine base on the older Mustache.js template engine
+- Handlebars which uses {{title}} as placeholder for variables
+- when run express server the tempolate engine will replace these variables maked with {{}} with their actual values that comes from the node server, and it transfrom that document, which we call a template into an HTML file to be rendered by the browser, so it allows us to populate our HTML with data before it's sent to the client to be shown to the user
+- to use one of these template engine, we need to install the corrasponding npm package, for example:
+
+```sh
+npm install hbs --save
+```
+
+- we don't actually need to import or require it into our node application, Express has a way of loading our new template engine internally, so we don't have to do it. we have to do is tell Express which template engine we want to use and where it can find our templates
+
+**How to setting:** [follow this link](https://expressjs.com/en/4x/api.html#app.set)

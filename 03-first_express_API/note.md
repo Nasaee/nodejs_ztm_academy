@@ -419,3 +419,266 @@ npm install hbs --save
 - we don't actually need to import or require it into our node application, Express has a way of loading our new template engine internally, so we don't have to do it. we have to do is tell Express which template engine we want to use and where it can find our templates
 
 **How to setting:** [follow this link](https://expressjs.com/en/4x/api.html#app.set)
+
+```hbs
+<!-- ./views/index.hbs -->
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='site/css/style.css' />
+  </head>
+  <body>
+    <h1>{{caption}}</h1>
+    <img src='site/images/skimountain.jpg' alt='Ski mountain' />
+  </body>
+</html>
+```
+
+- **{{title}}** is a placeholder for the title
+- **{{caption}}** is a placeholder for the caption
+
+```js
+const express = require('express');
+const path = require('path');
+
+const frindsRouter = require('./routes/friends.router');
+const messagesRouter = require('./routes/messages.router');
+
+const app = express();
+
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views')); // views folder
+
+const PORT = 3000;
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  next();
+  const delta = Date.now() - start;
+  console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
+});
+
+app.use('/site', express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.render('index', {
+    title: 'My friends are very clever',
+    caption: "Let's go skiing",
+  });
+});
+app.use('/friends', frindsRouter);
+app.use('/messages', messagesRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+**Note:**
+
+```js
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+```
+
+- This code snippet sets the view engine to handle hbs files and specifies the directory where the views are located.
+
+```js
+app.get('/', (req, res) => {
+  // pass data to the placeholder in the views/index.hbs
+  res.render('index', {
+    title: 'My friends are very clever',
+    caption: "Let's go skiing",
+  });
+});
+```
+
+- This code snippet sets up a route for the root URL ("/") in an Express.js application. When a GET request is made to the root URL, it renders an "index" view template with a title and caption as data.
+
+# Layout and Seperation of Concerns
+
+```js
+// ./server.js
+const frindsRouter = require('./routes/friends.router');
+const messagesRouter = require('./routes/messages.router');
+
+const app = express();
+
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+
+const PORT = 3000;
+
+app.use((req, res, next) => {
+  const start = Date.now();
+  next();
+  const delta = Date.now() - start;
+  console.log(`${req.method} ${req.baseUrl}${req.url} ${delta}ms`);
+});
+
+app.use('/site', express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.render('index', {
+    title: 'My friends are very clever',
+    caption: "Let's go skiing",
+  });
+});
+app.use('/friends', frindsRouter);
+app.use('/messages', messagesRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+```
+
+**Note:**
+
+```js
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+```
+
+- This code snippet sets the view engine to handle hbs files and specifies the directory where the views are located.
+
+```js
+app.get('/', (req, res) => {
+  res.render('index', {
+    title: 'My friends are very clever',
+    caption: "Let's go skiing",
+  });
+});
+```
+
+This code snippet sets up a route for the root URL ("/") of a web application. When a user visits this URL, the server responds by rendering the "index.hbs" in views folder that we setup following.
+
+```js
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+```
+
+and passing in an object with title and caption properties.
+
+```hbs
+<!-- ./views/index.hbs -->
+<h1>{{caption}}</h1>
+<img src='site/images/skimountain.jpg' alt='Ski mountain' />
+```
+
+and put it into **layout.hbs**
+
+```hbs
+<!-- ./views/layout.hbs -->
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='site/css/style.css' />
+  </head>
+  <body>
+    {{{body}}}
+  </body>
+</html>
+```
+
+**Note:**
+
+{{{body}}} use 3 curly braces to render the body content
+
+**layout.hbs** is a template engine which is used to render our views. this layout use by default when we call the res.render(...) function
+
+for example:
+
+```js
+app.get('/', (req, res) => {
+  res.render('index', {
+    title: 'My friends are very clever',
+    caption: "Let's go skiing",
+  });
+});
+```
+
+---
+
+```js
+// ./server.js
+app.use('/messages', messagesRouter);
+```
+
+This code snippet sets up a route for the URL ("/messages") of a web application. When a user visits this URL, the server responds by rendering the "index.hbs" in views folder that we setup following.
+
+```js
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+```
+
+and passing in an object with title and friend properties.
+
+```js
+// ./controllers/messages.controller.js
+const path = require('path');
+const { title } = require('process');
+
+function getMessages(req, res) {
+  res.render('messages', {
+    title: 'Messages to my Friends!',
+    friend: 'Elon Musk',
+  });
+}
+
+function postMessages(req, res) {
+  console.log('Updating messages...');
+}
+
+module.exports = {
+  getMessages,
+  postMessages,
+};
+```
+
+**Note:**
+
+```js
+function getMessages(req, res) {
+  res.render('messages', {
+    title: 'Messages to my Friends!',
+    friend: 'Elon Musk',
+  });
+}
+```
+
+- this will pass title and friend properties to messages.hbs
+
+```hbs
+<!-- ./views/messages.hbs -->
+<ul>
+  <li>Hello {{friend}}!</li>
+  <li>What are your thoughts on black holes?</li>
+</ul>
+```
+
+and render it in layout.hbs
+
+```hbs
+<!-- ./views/layout.hbs -->
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='site/css/style.css' />
+  </head>
+  <body>
+    {{{body}}}
+  </body>
+</html>
+```
+
+**Note:**
+
+{{{body}}} use 3 curly braces to render the body content. this layout use by default when we call the res.render(...) function

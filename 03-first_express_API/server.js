@@ -7,7 +7,7 @@ const messagesRouter = require('./routes/messages.router');
 const app = express();
 
 app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views')); 
+app.set('views', path.join(__dirname, 'views'));
 
 const PORT = 3000;
 
